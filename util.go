@@ -15,8 +15,8 @@ type JsonObject struct {
 
 type Puzzle struct {
 	Name string
-	Rows [][]float64
-	Cols [][]float64
+	Rows [][]int
+	Cols [][]int
 }
 
 func ReadFile(name string) (v JsonObject) {
