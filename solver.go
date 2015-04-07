@@ -1,4 +1,4 @@
-package gopbn
+package gongram
 
 type Board struct {
 	cells [][]Cell
@@ -6,7 +6,9 @@ type Board struct {
 
 type Cell int
 
-// enum used for solving the board
+// enum used for cell values
+// marked is used to signal a cell is definitely empty
+// empty is for cells that haven't been evaluated yet (might be full or marked)
 const (
 	empty Cell = iota
 	full

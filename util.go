@@ -1,4 +1,4 @@
-package gopbn
+package gongram
 
 import (
 	"bufio"
