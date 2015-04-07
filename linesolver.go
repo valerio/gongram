@@ -52,6 +52,13 @@ Loop:
 				state = checkrest
 				continue Loop
 			}
+
+			if block == 0 {
+				positions[block] = 0
+			} else {
+				positions[block] = i + 1
+			}
+
 			if positions[block] == len(line) {
 				return nil
 			}
