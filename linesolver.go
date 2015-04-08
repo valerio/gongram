@@ -211,7 +211,7 @@ Loop:
 		case newblock:
 			if block < 0 {
 				if block == maxblock {
-					i = len(line)-1
+					i = len(line) - 1
 				}
 				block++
 				state = checkrest
@@ -219,7 +219,7 @@ Loop:
 			}
 
 			if block == maxblock {
-				positions[block] = len(line)-1 
+				positions[block] = len(line) - 1
 			} else {
 				positions[block] = i - 1
 			}
@@ -242,13 +242,13 @@ Loop:
 			if line[i] != full {
 				coverage[block] = -1
 			} else {
-				coverage[block] = i 
+				coverage[block] = i
 			}
 			i--
 
 			for positions[block]-i < constraints[block] {
 
-				if j < 0 {
+				if i < 0 {
 					return nil
 				}
 
@@ -293,7 +293,7 @@ Loop:
 				continue Loop
 			}
 
-			if i < 0 < block {
+			if i < 0 && block > 0 {
 				return nil
 			}
 

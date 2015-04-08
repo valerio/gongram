@@ -45,7 +45,7 @@ func TestRightSolve(t *testing.T) {
 	constraints = []int{1, 3}
 	expected = []int{0, 4}
 
-	result = LeftSolve(constraints, line)
+	result = RightSolve(constraints, line)
 
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
