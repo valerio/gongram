@@ -200,5 +200,158 @@ Loop:
 }
 
 func RightSolve(constraints []int, line []Cell) []int {
-	return []int{} //TODO: not implemented yet
+	i, block, maxblock := 0, len(constraints)-1, len(constraints)-1
+	backtracking := false
+	state := newblock
+	positions := make([]int, len(constraints))
+	coverage := make([]int, len(constraints))
+Loop:
+	for state != halt {
+		switch state {
+		case newblock:
+			if block < 0 {
+				if block == maxblock {
+					i = len(line)-1
+				}
+				block++
+				state = checkrest
+				continue Loop
+			}
+
+			if block == maxblock {
+				positions[block] = len(line)-1 
+			} else {
+				positions[block] = i - 1
+			}
+
+			if positions[block]-constraints[block]+1 < 0 {
+				return nil
+			}
+			state = placeblock
+
+		case placeblock:
+			for line[positions[block]] == marked {
+				positions[block]--
+				if positions[block] < 0 {
+					return nil
+				}
+			}
+
+			i = positions[block]
+
+			if line[i] != full {
+				coverage[block] = -1
+			} else {
+				coverage[block] = i 
+			}
+			i--
+
+			for positions[block]-i < constraints[block] {
+
+				if j < 0 {
+					return nil
+				}
+
+				if line[i] == marked {
+					if coverage[block] == -1 {
+						positions[block] = i
+						state = placeblock
+					} else {
+						state = backtrack
+					}
+					continue Loop
+				}
+
+				if coverage[block] == -1 && line[i] == 1 {
+					coverage[block] = i
+				}
+
+				i--
+			}
+			state = finalspace
+
+		case finalspace:
+			for i >= 0 && line[i] == full {
+
+				if coverage[block] == positions[block] {
+					state = backtrack
+					continue Loop
+				}
+
+				positions[block]--
+
+				if coverage[block] == -1 && line[i] == full {
+					coverage[block] = i
+				}
+
+				i--
+			}
+
+			if backtracking && coverage[block] == -1 {
+				backtracking = false
+				state = advanceblock
+				continue Loop
+			}
+
+			if i < 0 < block {
+				return nil
+			}
+
+			block--
+			backtracking = false
+			state = newblock
+
+		case checkrest:
+			for i >= 0 {
+				if line[i] == full {
+					i = positions[block] - constraints[block]
+					state = advanceblock
+					continue Loop
+				}
+				i--
+			}
+			state = halt
+
+		case backtrack:
+			block++
+			if block > maxblock {
+				return nil
+			}
+			i = positions[block] - constraints[block]
+			state = advanceblock
+
+		case advanceblock:
+			for coverage[block] < 0 && positions[block] > coverage[block] {
+				if line[i] == marked {
+					if coverage[block] > 0 {
+						state = backtrack
+					} else {
+						positions[block] = i - 1
+						backtracking = true
+						state = placeblock
+					}
+					continue Loop
+				}
+
+				positions[block]--
+
+				if line[i] == full {
+					i--
+					if coverage[block] == -1 {
+						coverage[block] = i - 1
+					}
+					state = finalspace
+					continue Loop
+				}
+
+				i--
+
+				if i < 0 {
+					return nil
+				}
+			}
+			state = backtrack
+		}
+	}
+	return positions
 }
