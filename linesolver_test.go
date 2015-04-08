@@ -58,7 +58,7 @@ func TestIntersect(t *testing.T) {
 	constraints := []int{5}
 	expected := []Cell{1, 1, 1, 1, 1}
 
-	result := Intersect(constraints, line)
+	result, _ := Intersect(constraints, line)
 
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
@@ -69,7 +69,7 @@ func TestIntersect(t *testing.T) {
 	constraints = []int{0}
 	expected = []Cell{2, 2, 2, 2, 2}
 
-	result = Intersect(constraints, line)
+	result, _ = Intersect(constraints, line)
 
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)

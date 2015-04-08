@@ -28,8 +28,61 @@ const (
 	advanceblock
 )
 
-func Intersect(constraints []int, line []Cell) []Cell {
-	return []Cell{empty} //TODO: not implemented yet
+func Intersect(constraints []int, line []Cell) (result []Cell, ok bool) {
+	result = make([]Cell, len(line))
+	ok = true
+
+	// if the line is completely empty or full the solution is trivial
+	if constraints[0] == 0 {
+		for i, _ := range result {
+			result[i] = marked
+		}
+		return
+	} else if constraints[0] == len(line) {
+		for i, _ := range result {
+			result[i] = full
+		}
+		return
+	}
+
+	changed, rb, lb := 0, 0, 0
+	lgap, rgap := true, true
+
+	left := LeftSolve(constraints, line)
+	right := RightSolve(constraints, line)
+
+	if left == nil || right == nil {
+		ok = false
+		return
+	}
+
+	for i := 0; i < len(line); i++ {
+		if !lgap && left[lb]+constraints[lb] == i {
+			lgap = true
+			lb++
+		}
+		if lgap && lb < len(constraints) && left[lb] == i {
+			lgap = false
+		}
+		if !rgap && right[rb]+1 == i {
+			rgap = true
+			rb++
+		}
+		if rgap && rb < len(constraints) && right[rb]-constraints[rb]+1 == i {
+			rgap = false
+		}
+		if lgap == rgap && lb == rb {
+			if lgap {
+				result[i] = marked
+			} else {
+				result[i] = full
+			}
+			changed++
+		}
+
+	}
+
+	return
 }
 
 func LeftSolve(constraints []int, line []Cell) []int {

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/sosdoc/gongram"
 	"fmt"
+	"github.com/sosdoc/gongram"
 )
 
 func main() {
@@ -15,9 +15,6 @@ func main() {
 	fmt.Printf("line: %v\n", line)
 	fmt.Printf("Row: %v\n", puz.Rows[2])
 	nel := gongram.LeftSolve(puz.Rows[2], line)
-	fmt.Printf("positions: %v",nel) // should print [1, 6]
+	fmt.Printf("positions: %v", nel) // should print [1, 6]
 
 }
-
-
-
