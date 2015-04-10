@@ -76,3 +76,55 @@ func TestIntersect(t *testing.T) {
 		t.FailNow()
 	}
 }
+
+func TestIntersectP(t *testing.T) {
+	line := []Cell{0, 0, 0, 0, 0}
+	constraints := []int{5}
+	expected := []Cell{1, 1, 1, 1, 1}
+
+	result, _ := IntersectP(constraints, line)
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("Expected %v, got %v", expected, result)
+		t.FailNow()
+	}
+
+	line = []Cell{0, 0, 0, 0, 0}
+	constraints = []int{0}
+	expected = []Cell{2, 2, 2, 2, 2}
+
+	result, _ = IntersectP(constraints, line)
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("Expected %v, got %v", expected, result)
+		t.FailNow()
+	}
+}
+
+func BenchmarkIntersect(b *testing.B) {
+	var intResult []Cell
+
+	line := []Cell{0, 1, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0}
+	constraints := []int{3, 3, 1, 4, 2}
+
+	for i := 0; i < b.N; i++ {
+		intResult, _ = Intersect(constraints, line)
+	}
+
+	_ = intResult
+
+}
+
+func BenchmarkIntersectParallel(b *testing.B) {
+	var intResult []Cell
+
+	line := []Cell{0, 1, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0}
+	constraints := []int{3, 3, 1, 4, 2}
+
+	for i := 0; i < b.N; i++ {
+		intResult, _ = Intersect(constraints, line)
+	}
+
+	_ = intResult
+
+}
