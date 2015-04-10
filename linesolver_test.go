@@ -122,7 +122,7 @@ func BenchmarkIntersectParallel(b *testing.B) {
 	constraints := []int{3, 3, 1, 4, 2}
 
 	for i := 0; i < b.N; i++ {
-		intResult, _ = Intersect(constraints, line)
+		intResult, _ = IntersectP(constraints, line)
 	}
 
 	_ = intResult
