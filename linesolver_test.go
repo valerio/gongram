@@ -102,29 +102,19 @@ func TestIntersectP(t *testing.T) {
 }
 
 func BenchmarkIntersect(b *testing.B) {
-	var intResult []Cell
-
 	line := []Cell{0, 1, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0}
 	constraints := []int{3, 3, 1, 4, 2}
 
 	for i := 0; i < b.N; i++ {
-		intResult, _ = Intersect(constraints, line)
+		Intersect(constraints, line)
 	}
-
-	_ = intResult
-
 }
 
-func BenchmarkIntersectParallel(b *testing.B) {
-	var intResult []Cell
-
+func BenchmarkIntersectP(b *testing.B) {
 	line := []Cell{0, 1, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0}
 	constraints := []int{3, 3, 1, 4, 2}
 
 	for i := 0; i < b.N; i++ {
-		intResult, _ = IntersectP(constraints, line)
+		IntersectP(constraints, line)
 	}
-
-	_ = intResult
-
 }

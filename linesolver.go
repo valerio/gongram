@@ -28,7 +28,7 @@ const (
 	advanceblock
 )
 
-func IntersectP(constraints []int, line []Cell) (result []Cell, ok bool) {
+func Intersect(constraints []int, line []Cell) (result []Cell, ok bool) {
 	result = make([]Cell, len(line))
 	ok = true
 
@@ -48,21 +48,8 @@ func IntersectP(constraints []int, line []Cell) (result []Cell, ok bool) {
 	changed, rb, lb := 0, 0, 0
 	lgap, rgap := true, true
 
-	outL, outR := make(chan []int), make(chan []int)
-
-	solveL := func(out chan []int) {
-		out <- LeftSolve(constraints, line)
-	}
-
-	solveR := func(out chan []int) {
-		out <- RightSolve(constraints, line)
-	}
-
-	go solveL(outL)
-	go solveR(outR)
-
-	left := <-outL
-	right := <-outR
+	left := LeftSolve(constraints, line)
+	right := RightSolve(constraints, line)
 
 	if left == nil || right == nil {
 		ok = false
@@ -98,7 +85,14 @@ func IntersectP(constraints []int, line []Cell) (result []Cell, ok bool) {
 	return
 }
 
-func Intersect(constraints []int, line []Cell) (result []Cell, ok bool) {
+var OutL, OutR chan []int = make(chan []int), make(chan []int)
+
+// IntersectP acts the same as Intersect but executes the leftmost and rightmost solver functions in parallel
+// then it waits for both results to be sent on their respective channels and proceeds to compute the intersection
+//
+// this shouldn't be faster than the regular Intersect, as the left/right solvers are pretty fast anyway and
+// the overhead from communication/sleeping will probably be higher than the time saved
+func IntersectP(constraints []int, line []Cell) (result []Cell, ok bool) {
 	result = make([]Cell, len(line))
 	ok = true
 
@@ -118,8 +112,16 @@ func Intersect(constraints []int, line []Cell) (result []Cell, ok bool) {
 	changed, rb, lb := 0, 0, 0
 	lgap, rgap := true, true
 
-	left := LeftSolve(constraints, line)
-	right := RightSolve(constraints, line)
+	go func() {
+		OutL <- LeftSolve(constraints, line)
+	}()
+
+	go func() {
+		OutR <- RightSolve(constraints, line)
+	}()
+
+	left := <-OutL
+	right := <-OutR
 
 	if left == nil || right == nil {
 		ok = false

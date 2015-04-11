@@ -14,7 +14,7 @@ func main() {
 	//var b gopbn.Board = gopbn.NewBoard(puz)
 	fmt.Printf("line: %v\n", line)
 	fmt.Printf("Row: %v\n", puz.Rows[2])
-	nel, _ := gongram.Intersect(puz.Rows[2], line)
+	nel, _ := gongram.IntersectP(puz.Rows[2], line)
 	fmt.Printf("positions: %v\n", nel) // should print [1, 6]
 
 }

@@ -8,11 +8,13 @@ import (
 	"os"
 )
 
-//struct for decoding JSON files
+// base struct for decoding JSON files containing one or more nonogram puzzles
 type JsonObject struct {
 	Puzzles []Puzzle
 }
 
+// a single Puzzle has a name and two 2-dimensional slices of integers representing
+// the constraints of the puzzle
 type Puzzle struct {
 	Name string
 	Rows [][]int
