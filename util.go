@@ -48,7 +48,7 @@ func ListNames(obj JsonObject) {
 func StringifyBoard(board Board) string {
 	var buffer bytes.Buffer
 
-	for _, line := range board.cells {
+	for _, line := range board {
 		buffer.WriteString("|")
 
 		for _, cell := range line {

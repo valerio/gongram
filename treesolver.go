@@ -36,10 +36,10 @@ type TreeSolverJob struct {
 
 // NewTreeSolver returns a newly created Solver for the given puzzle
 func NewTreeSolver(p Puzzle) *TreeSolver {
-	t := TreeSolver{p}
+	t := TreeSolver{puzzle: p}
 	t.board = NewBoard(len(p.Rows), len(p.Cols))
 	t.initJobs()
-	t.activeJobs = p.Rows + p.Cols
+	t.activeJobs = len(p.Rows) + len(p.Cols)
 	return &t
 }
 
@@ -52,9 +52,9 @@ func (t *TreeSolver) row(index int) []Cell {
 }
 
 func (t *TreeSolver) col(index int) []Cell {
-	result := make([]Cell)
+	result := make([]Cell, len(t.puzzle.Cols))
 	for i := 0; i < len(t.puzzle.Rows); i++ {
-		append(result, t.board[i][index])
+		result = append(result, t.board[i][index])
 	}
 	return result
 }
@@ -67,10 +67,10 @@ func (t *TreeSolver) initJobs() {
 	t.jobs = make([]TreeSolverJob, len(t.puzzle.Rows)+len(t.puzzle.Cols))
 
 	for i := 0; i < len(t.puzzle.Rows); i++ {
-		append(t.jobs, TreeSolverJob{row, i, t.row(i), t.puzzle.Rows[i], t.score(row, i)})
+		t.jobs = append(t.jobs, TreeSolverJob{row, i, t.row(i), t.puzzle.Rows[i], t.score(row, i)})
 	}
 
 	for i := 0; i < len(t.puzzle.Cols); i++ {
-		append(t.jobs, TreeSolverJob{column, i, t.col(i), t.puzzle.Cols[i], t.score(column, i)})
+		t.jobs = append(t.jobs, TreeSolverJob{column, i, t.col(i), t.puzzle.Cols[i], t.score(column, i)})
 	}
 }

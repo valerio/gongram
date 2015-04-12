@@ -4,9 +4,7 @@ type Solver interface {
 	Solve() Board
 }
 
-type Board struct {
-	cells [][]Cell
-}
+type Board [][]Cell
 
 type Cell int
 
@@ -20,10 +18,10 @@ const (
 )
 
 func NewBoard(rows int, columns int) (b Board) {
-	b.cells = make([][]Cell, rows)
+	b = make([][]Cell, rows)
 
-	for i := range b.cells {
-		b.cells[i] = make([]Cell, columns)
+	for i := range b {
+		b[i] = make([]Cell, columns)
 	}
 	return
 }
