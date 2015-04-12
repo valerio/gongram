@@ -10,7 +10,7 @@ func TestLeftSolve(t *testing.T) {
 	constraints := []int{3, 3}
 	expected := []int{0, 5}
 
-	result := LeftSolve(constraints, line)
+	result := leftSolve(constraints, line)
 
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
@@ -21,7 +21,7 @@ func TestLeftSolve(t *testing.T) {
 	constraints = []int{1, 2}
 	expected = []int{1, 3}
 
-	result = LeftSolve(constraints, line)
+	result = leftSolve(constraints, line)
 
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
@@ -34,7 +34,7 @@ func TestRightSolve(t *testing.T) {
 	constraints := []int{3, 3}
 	expected := []int{3, 7}
 
-	result := RightSolve(constraints, line)
+	result := rightSolve(constraints, line)
 
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
@@ -45,7 +45,7 @@ func TestRightSolve(t *testing.T) {
 	constraints = []int{1, 3}
 	expected = []int{0, 4}
 
-	result = RightSolve(constraints, line)
+	result = rightSolve(constraints, line)
 
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
@@ -58,7 +58,7 @@ func TestIntersect(t *testing.T) {
 	constraints := []int{5}
 	expected := []Cell{1, 1, 1, 1, 1}
 
-	result, _ := Intersect(constraints, line)
+	result, _ := intersect(constraints, line)
 
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
@@ -69,7 +69,7 @@ func TestIntersect(t *testing.T) {
 	constraints = []int{0}
 	expected = []Cell{2, 2, 2, 2, 2}
 
-	result, _ = Intersect(constraints, line)
+	result, _ = intersect(constraints, line)
 
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
@@ -82,7 +82,7 @@ func TestIntersectP(t *testing.T) {
 	constraints := []int{5}
 	expected := []Cell{1, 1, 1, 1, 1}
 
-	result, _ := IntersectP(constraints, line)
+	result, _ := intersectP(constraints, line)
 
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
@@ -93,7 +93,7 @@ func TestIntersectP(t *testing.T) {
 	constraints = []int{0}
 	expected = []Cell{2, 2, 2, 2, 2}
 
-	result, _ = IntersectP(constraints, line)
+	result, _ = intersectP(constraints, line)
 
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
@@ -106,7 +106,7 @@ func BenchmarkIntersect(b *testing.B) {
 	constraints := []int{3, 3, 1, 4, 2}
 
 	for i := 0; i < b.N; i++ {
-		Intersect(constraints, line)
+		intersect(constraints, line)
 	}
 }
 
@@ -115,6 +115,6 @@ func BenchmarkIntersectP(b *testing.B) {
 	constraints := []int{3, 3, 1, 4, 2}
 
 	for i := 0; i < b.N; i++ {
-		IntersectP(constraints, line)
+		intersectP(constraints, line)
 	}
 }

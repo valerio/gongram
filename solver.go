@@ -1,5 +1,9 @@
 package gongram
 
+type Solver interface {
+	Solve() Board
+}
+
 type Board struct {
 	cells [][]Cell
 }
@@ -15,12 +19,11 @@ const (
 	marked
 )
 
-func NewBoard(p Puzzle) (b Board) {
-	b.cells = make([][]Cell, len(p.Rows))
+func NewBoard(rows int, columns int) (b Board) {
+	b.cells = make([][]Cell, rows)
 
 	for i := range b.cells {
-		b.cells[i] = make([]Cell, len(p.Cols))
+		b.cells[i] = make([]Cell, columns)
 	}
-
 	return
 }
