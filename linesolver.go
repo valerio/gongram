@@ -28,6 +28,16 @@ const (
 	advanceblock
 )
 
+// SolveLine accepts a list of costraints and a line (list of Cell)
+// it will try to fill as many blocks possible in the line under the given
+// constraints and the already filled in cells in the line
+// the result is a line with at least the same amount of cells filled in
+// the given input
+//
+// SolveLine only fails when solving the line with the given constraints
+// is impossible (a contradiction is found).
+// This usually means that the solver made a wrong guess at some point
+// and backtracking will be needed for solving the puzzle.
 func SolveLine(constraints []int, line []Cell) (result []Cell, ok bool) {
 	result, ok = intersect(constraints, line)
 	return
@@ -39,12 +49,12 @@ func intersect(constraints []int, line []Cell) (result []Cell, ok bool) {
 
 	// if the line is completely empty or full the solution is trivial
 	if constraints[0] == 0 {
-		for i, _ := range result {
+		for i := range result {
 			result[i] = marked
 		}
 		return
 	} else if constraints[0] == len(line) {
-		for i, _ := range result {
+		for i := range result {
 			result[i] = full
 		}
 		return
@@ -103,12 +113,12 @@ func intersectP(constraints []int, line []Cell) (result []Cell, ok bool) {
 
 	// if the line is completely empty or full the solution is trivial
 	if constraints[0] == 0 {
-		for i, _ := range result {
+		for i := range result {
 			result[i] = marked
 		}
 		return
 	} else if constraints[0] == len(line) {
-		for i, _ := range result {
+		for i := range result {
 			result[i] = full
 		}
 		return
