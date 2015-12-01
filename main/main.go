@@ -5,6 +5,8 @@ import (
 	"github.com/sosdoc/gongram"
 )
 
+// TODO: refactor project structure to produce the correct executable, i.e. not "main"
+
 func main() {
 	inputFile := gongram.ReadFile("nonogram.txt")
 	//gopbn.ListNames(inputFile)

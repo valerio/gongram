@@ -1,7 +1,6 @@
 package gongram
 
-// The possible states for the line solver functions.
-// the line solver operates by determining the starting index of each of the blocks indicated in the constraints
+// FastLineSolver operates by determining the starting index of each of the blocks indicated in the constraints.
 // if the constraints are [2,3], the solver will try to place a block of 2 and a block of 3 separated by at least one
 // empty space, if possible.
 // This line solver gets two possible (partial) solutions by trying to place blocks to the leftmost and rightmost
@@ -9,7 +8,22 @@ package gongram
 //
 // This solver can miss some logical clues and give incomplete solutions, but it can still solve some simple puzzles
 // by just iterating on each row and column. For more complex puzzles it needs to be supplemented with ulterior logic.
-//
+type FastLineSolver struct {
+	state         flState
+	isLeftSolver  bool
+	currentIndex  int
+	blockIndex    int	
+	backtracking  bool
+	positions     []int
+	coverage      []int
+	contradiction bool
+	constraints   []int
+	line          []Cell
+}
+
+type flState int
+
+// The possible states for the line solver functions.
 // A brief description of each state
 // newblock: 	start of a block, fails if line is over or checks the rest of the line if no more blocks are present
 // placeblock: 	places the block cells one by one until the end is reached or the block doesn't fit
@@ -17,9 +31,8 @@ package gongram
 // checkrest: 	checks that the remainder of the line doesn't have blocks already placed, then ends
 // backtrack: 	goes to the previous block and tries to move it forward (advance), fails if it's the first block
 // advanceblock:tries to move forward the current block in order to cover cells that are already full
-//
 const (
-	halt = iota
+	halt flState = iota
 	newblock
 	placeblock
 	finalspace
@@ -63,8 +76,11 @@ func intersect(constraints []int, line []Cell) (result []Cell, ok bool) {
 	changed, rb, lb := 0, 0, 0
 	lgap, rgap := true, true
 
-	left := leftSolve(constraints, line)
-	right := rightSolve(constraints, line)
+	leftSolver := newLeftLineSolver(constraints, line)
+	rightSolver := newRightLineSolver(constraints, line)
+
+	left := leftSolver.solve()
+	right := rightSolver.solve()
 
 	if left == nil || right == nil {
 		ok = false
@@ -100,398 +116,352 @@ func intersect(constraints []int, line []Cell) (result []Cell, ok bool) {
 	return
 }
 
-var outL, outR chan []int = make(chan []int), make(chan []int)
-
-// IntersectP acts the same as Intersect but executes the leftmost and rightmost solver functions in parallel
-// then it waits for both results to be sent on their respective channels and proceeds to compute the intersection
-//
-// this shouldn't be faster than the regular Intersect, as the left/right solvers are pretty fast anyway and
-// the overhead from communication/sleeping will probably be higher than the time saved
-func intersectP(constraints []int, line []Cell) (result []Cell, ok bool) {
-	result = make([]Cell, len(line))
-	ok = true
-
-	// if the line is completely empty or full the solution is trivial
-	if constraints[0] == 0 {
-		for i := range result {
-			result[i] = marked
-		}
-		return
-	} else if constraints[0] == len(line) {
-		for i := range result {
-			result[i] = full
-		}
-		return
+func newLeftLineSolver(constraints []int, line []Cell) FastLineSolver {
+	return FastLineSolver{
+		currentIndex:  0,
+		blockIndex:    0,
+		backtracking:  false,
+		state:         newblock,
+		positions:     make([]int, len(constraints)),
+		coverage:      make([]int, len(constraints)),
+		constraints:   constraints,
+		line:          line,
+		isLeftSolver:  true,
+		contradiction: false,
 	}
-
-	changed, rb, lb := 0, 0, 0
-	lgap, rgap := true, true
-
-	go func() {
-		outL <- leftSolve(constraints, line)
-	}()
-
-	go func() {
-		outR <- rightSolve(constraints, line)
-	}()
-
-	left := <-outL
-	right := <-outR
-
-	if left == nil || right == nil {
-		ok = false
-		return
-	}
-
-	for i := 0; i < len(line); i++ {
-		if !lgap && left[lb]+constraints[lb] == i {
-			lgap = true
-			lb++
-		}
-		if lgap && lb < len(constraints) && left[lb] == i {
-			lgap = false
-		}
-		if !rgap && right[rb]+1 == i {
-			rgap = true
-			rb++
-		}
-		if rgap && rb < len(constraints) && right[rb]-constraints[rb]+1 == i {
-			rgap = false
-		}
-		if lgap == rgap && lb == rb {
-			if lgap {
-				result[i] = marked
-			} else {
-				result[i] = full
-			}
-			changed++
-		}
-
-	}
-
-	return
 }
 
-func leftSolve(constraints []int, line []Cell) []int {
-	i, block := 0, 0
-	backtracking := false
-	state := newblock
-	positions := make([]int, len(constraints))
-	coverage := make([]int, len(constraints))
-
-Loop:
-	for state != halt {
-		switch state {
-		case newblock:
-			//set the first index of a new block
-			if block >= len(constraints) {
-				if block == 0 {
-					i = 0
-				}
-				block--
-				state = checkrest
-				continue Loop
-			}
-
-			if block == 0 {
-				positions[block] = 0
-			} else {
-				positions[block] = i + 1
-			}
-
-			if positions[block] == len(line) {
-				return nil
-			}
-			state = placeblock
-
-		case placeblock:
-
-			//move block forward if line is marked
-			for line[positions[block]] == marked {
-				positions[block]++
-				if positions[block] >= len(line) {
-					return nil
-				}
-			}
-
-			i = positions[block]
-
-			if line[i] != full {
-				coverage[block] = -1
-			} else {
-				coverage[block] = i //we need to cover position i (cannot move block past i)
-			}
-			i++
-
-			for i-positions[block] < constraints[block] {
-
-				if i >= len(line) {
-					return nil
-				}
-
-				if line[i] == marked {
-					if coverage[block] == -1 {
-						positions[block] = i
-						state = placeblock
-					} else {
-						state = backtrack
-					}
-					continue Loop
-				}
-
-				if coverage[block] == -1 && line[i] == 1 {
-					coverage[block] = i
-				}
-
-				i++
-			}
-			state = finalspace
-
-		case finalspace:
-
-			for i < len(line) && line[i] == full {
-
-				if coverage[block] == positions[block] {
-					state = backtrack
-					continue Loop
-				}
-
-				positions[block]++
-
-				if coverage[block] == -1 && line[i] == full {
-					coverage[block] = i
-				}
-
-				i++
-			}
-
-			if backtracking && coverage[block] == -1 {
-				backtracking = false
-				state = advanceblock
-				continue Loop
-			}
-
-			if i >= len(line) && block < len(constraints)-1 {
-				return nil
-			}
-
-			block++
-			backtracking = false
-			state = newblock
-
-		case checkrest:
-			//checks that remaining cells are empty or marked
-			for i < len(line) {
-				if line[i] == full {
-					//move the last block forward
-					i = positions[block] + constraints[block]
-					state = advanceblock
-					continue Loop
-				}
-				i++
-			}
-			state = halt
-
-		case backtrack:
-			block--
-			if block < 0 {
-				return nil
-			}
-			i = positions[block] + constraints[block]
-			state = advanceblock
-
-		case advanceblock:
-
-			for coverage[block] < 0 && positions[block] < coverage[block] {
-				if line[i] == marked {
-					if coverage[block] > 0 {
-						state = backtrack
-					} else {
-						positions[block] = i + 1
-						backtracking = true
-						state = placeblock
-					}
-					continue Loop
-				}
-
-				positions[block]++
-
-				if line[i] == full {
-					i++
-					if coverage[block] == -1 {
-						coverage[block] = i - 1
-					}
-					state = finalspace
-					continue Loop
-				}
-
-				i++
-
-				if i >= len(line) {
-					return nil
-				}
-			}
-			state = backtrack
-		}
-
+func newRightLineSolver(constraints []int, line []Cell) FastLineSolver {
+	return FastLineSolver{
+		currentIndex:  0,
+		blockIndex:    len(constraints) - 1,
+		backtracking:  false,
+		state:         newblock,
+		positions:     make([]int, len(constraints)),
+		coverage:      make([]int, len(constraints)),
+		constraints:   constraints,
+		line:          line,
+		isLeftSolver:  false,
+		contradiction: false,
 	}
-
-	return positions
 }
 
-func rightSolve(constraints []int, line []Cell) []int {
-	i, block, maxblock := 0, len(constraints)-1, len(constraints)-1
-	backtracking := false
-	state := newblock
-	positions := make([]int, len(constraints))
-	coverage := make([]int, len(constraints))
-Loop:
-	for state != halt {
-		switch state {
+// The solve functions implements a basic finite state machine, it executes until the solver reaches the halt state.
+// If a contradiction has been found, no solution can be found and the solver stops. This means the puzzle currently 
+// contains an error. 
+func (ls *FastLineSolver) solve() []int {
+	for ls.state != halt {
+		switch ls.state {
 		case newblock:
-			if block < 0 {
-				if block == maxblock {
-					i = len(line) - 1
-				}
-				block++
-				state = checkrest
-				continue Loop
-			}
-
-			if block == maxblock {
-				positions[block] = len(line) - 1
-			} else {
-				positions[block] = i - 1
-			}
-
-			if positions[block]-constraints[block]+1 < 0 {
-				return nil
-			}
-			state = placeblock
-
+			ls.newBlock()
+			continue
 		case placeblock:
-			for line[positions[block]] == marked {
-				positions[block]--
-				if positions[block] < 0 {
-					return nil
-				}
-			}
-
-			i = positions[block]
-
-			if line[i] != full {
-				coverage[block] = -1
-			} else {
-				coverage[block] = i
-			}
-			i--
-
-			for positions[block]-i < constraints[block] {
-
-				if i < 0 {
-					return nil
-				}
-
-				if line[i] == marked {
-					if coverage[block] == -1 {
-						positions[block] = i
-						state = placeblock
-					} else {
-						state = backtrack
-					}
-					continue Loop
-				}
-
-				if coverage[block] == -1 && line[i] == 1 {
-					coverage[block] = i
-				}
-
-				i--
-			}
-			state = finalspace
-
+			ls.placeBlock()
+			continue
 		case finalspace:
-			for i >= 0 && line[i] == full {
-
-				if coverage[block] == positions[block] {
-					state = backtrack
-					continue Loop
-				}
-
-				positions[block]--
-
-				if coverage[block] == -1 && line[i] == full {
-					coverage[block] = i
-				}
-
-				i--
-			}
-
-			if backtracking && coverage[block] == -1 {
-				backtracking = false
-				state = advanceblock
-				continue Loop
-			}
-
-			if i < 0 && block > 0 {
-				return nil
-			}
-
-			block--
-			backtracking = false
-			state = newblock
-
+			ls.finalSpace()
+			continue
 		case checkrest:
-			for i >= 0 {
-				if line[i] == full {
-					i = positions[block] - constraints[block]
-					state = advanceblock
-					continue Loop
-				}
-				i--
-			}
-			state = halt
-
+			ls.checkRest()
+			continue
 		case backtrack:
-			block++
-			if block > maxblock {
-				return nil
-			}
-			i = positions[block] - constraints[block]
-			state = advanceblock
-
+			ls.backtrack()
+			continue
 		case advanceblock:
-			for coverage[block] < 0 && positions[block] > coverage[block] {
-				if line[i] == marked {
-					if coverage[block] > 0 {
-						state = backtrack
-					} else {
-						positions[block] = i - 1
-						backtracking = true
-						state = placeblock
-					}
-					continue Loop
-				}
-
-				positions[block]--
-
-				if line[i] == full {
-					i--
-					if coverage[block] == -1 {
-						coverage[block] = i - 1
-					}
-					state = finalspace
-					continue Loop
-				}
-
-				i--
-
-				if i < 0 {
-					return nil
-				}
-			}
-			state = backtrack
+			ls.advanceBlock()
+			continue
 		}
 	}
-	return positions
+
+	if ls.contradiction {
+		return nil
+	}
+	return ls.positions
+}
+
+func (ls *FastLineSolver) newBlock() {
+	if ls.blockIndexOutOfBounds() {
+		if ls.isFirstBlockIndex() {
+			ls.currentIndex = ls.startOfLine()
+		}
+		ls.blockIndex = ls.previousBlock()
+		ls.state = checkrest
+		return
+	}
+
+	if ls.isFirstBlockIndex() {
+		ls.positions[ls.blockIndex] = ls.startOfLine()
+	} else {
+		ls.positions[ls.blockIndex] = ls.nextIndex()
+	}
+
+	if ls.blockPositionOutOfBounds() {
+		ls.state = halt
+		ls.contradiction = true
+		return
+	}
+	ls.state = placeblock
+}
+
+func (ls *FastLineSolver) placeBlock() {
+	//move block forward if line is marked
+	for ls.line[ls.positions[ls.blockIndex]] == marked {
+		ls.positions[ls.blockIndex] = ls.nextBlockPosition()
+		if ls.blockPositionOverflow() {
+			ls.state = halt
+			ls.contradiction = true
+			return
+		}
+	}
+
+	ls.currentIndex = ls.positions[ls.blockIndex]
+
+	if ls.line[ls.currentIndex] != full {
+		ls.coverage[ls.blockIndex] = -1
+	} else {
+		ls.coverage[ls.blockIndex] = ls.currentIndex //we need to cover position i (cannot move ls.blockIndex past i)
+	}
+	ls.currentIndex = ls.nextIndex()
+
+	for ls.blockIsSmallerThanConstraint() {
+
+		if ls.currentIndexOutOfBounds() {
+			ls.state = halt
+			ls.contradiction = true
+			return
+		}
+
+		if ls.line[ls.currentIndex] == marked {
+			if ls.coverage[ls.blockIndex] == -1 {
+				ls.positions[ls.blockIndex] = ls.currentIndex
+				ls.state = placeblock
+			} else {
+				ls.state = backtrack
+			}
+			return
+		}
+
+		if ls.coverage[ls.blockIndex] == -1 && ls.line[ls.currentIndex] == 1 {
+			ls.coverage[ls.blockIndex] = ls.currentIndex
+		}
+
+		ls.currentIndex = ls.nextIndex()
+	}
+	ls.state = finalspace
+}
+
+func (ls *FastLineSolver) finalSpace() {
+	for !ls.currentIndexOutOfBounds() && ls.line[ls.currentIndex] == full {
+		if ls.coverage[ls.blockIndex] == ls.positions[ls.blockIndex] {
+			ls.state = backtrack
+			return
+		}
+
+		ls.positions[ls.blockIndex] = ls.nextBlockPosition()
+
+		if ls.coverage[ls.blockIndex] == -1 && ls.line[ls.currentIndex] == full {
+			ls.coverage[ls.blockIndex] = ls.currentIndex
+		}
+
+		ls.currentIndex = ls.nextIndex()
+	}
+
+	if ls.backtracking && ls.coverage[ls.blockIndex] == -1 {
+		ls.backtracking = false
+		ls.state = advanceblock
+		return
+	}
+
+	if ls.currentIndexOutOfBounds() && ls.blockIndexInBounds() {
+		ls.state = halt
+		ls.contradiction = true
+		return
+	}
+
+	ls.blockIndex = ls.nextBlock()
+	ls.backtracking = false
+	ls.state = newblock
+}
+
+func (ls *FastLineSolver) checkRest() {
+	//checks that remaining cells are empty or marked
+	for !ls.currentIndexOutOfBounds() {
+		if ls.line[ls.currentIndex] == full {
+			//move the last block forward
+			ls.moveBlockForward()
+			ls.state = advanceblock
+			return
+		}
+		ls.currentIndex = ls.nextIndex()
+	}
+	ls.state = halt
+}
+
+func (ls *FastLineSolver) backtrack() {
+	ls.blockIndex = ls.previousBlock()
+	if ls.blockIndexBeforeBounds() {
+		ls.state = halt
+		ls.contradiction = true
+		return
+	}
+	ls.moveBlockForward()
+	ls.state = advanceblock
+}
+
+func (ls *FastLineSolver) advanceBlock() {
+	for ls.coverage[ls.blockIndex] < 0 && ls.isPositionOfBlockNotCovered() {
+		if ls.line[ls.currentIndex] == marked {
+			if ls.coverage[ls.blockIndex] > 0 {
+				ls.state = backtrack
+			} else {
+				ls.positions[ls.blockIndex] = ls.nextIndex()
+				ls.backtracking = true
+				ls.state = placeblock
+			}
+			return
+		}
+
+		ls.positions[ls.blockIndex] = ls.nextBlockPosition()
+
+		if ls.line[ls.currentIndex] == full {
+			ls.currentIndex = ls.nextIndex()
+			if ls.coverage[ls.blockIndex] == -1 {
+				ls.coverage[ls.blockIndex] = ls.currentIndex - 1
+			}
+			ls.state = finalspace
+			return
+		}
+
+		ls.currentIndex = ls.nextIndex()
+
+		if ls.currentIndexOutOfBounds() {
+			ls.state = halt
+			ls.contradiction = true
+			return
+		}
+	}
+	ls.state = backtrack
+}
+
+// The following functions are used to abstract the left and right Solver.
+// They encapsulate common conditions and operations that are logically the same.
+
+func (ls *FastLineSolver) blockIndexOutOfBounds() bool {
+	if ls.isLeftSolver {
+		return ls.blockIndex >= len(ls.constraints)
+	}
+	return ls.blockIndex < 0
+}
+
+func (ls *FastLineSolver) blockPositionOutOfBounds() bool {
+	if ls.isLeftSolver {
+		return ls.positions[ls.blockIndex] == len(ls.line)
+	}
+	return ls.positions[ls.blockIndex]-ls.constraints[ls.blockIndex]+1 < 0
+}
+
+func (ls *FastLineSolver) blockPositionOverflow() bool {
+	if ls.isLeftSolver {
+		return ls.positions[ls.blockIndex] >= len(ls.line)
+	}
+	return ls.positions[ls.blockIndex] < 0
+}
+
+func (ls *FastLineSolver) isFirstBlockIndex() bool {
+	if ls.isLeftSolver {
+		return ls.blockIndex == 0
+	}
+	return ls.blockIndex == len(ls.constraints)-1
+}
+
+func (ls *FastLineSolver) startOfLine() int {
+	if ls.isLeftSolver {
+		return 0
+	}
+	return len(ls.line) - 1
+}
+
+func (ls *FastLineSolver) nextIndex() int {
+	if ls.isLeftSolver {
+		return ls.currentIndex + 1
+	}
+	return ls.currentIndex - 1
+}
+
+func (ls *FastLineSolver) previousIndex() int {
+	if ls.isLeftSolver {
+		return ls.currentIndex - 1
+	}
+	return ls.currentIndex + 1
+}
+
+func (ls *FastLineSolver) nextBlock() int {
+	if ls.isLeftSolver {
+		return ls.blockIndex + 1
+	}
+	return ls.blockIndex - 1
+}
+
+func (ls *FastLineSolver) previousBlock() int {
+	if ls.isLeftSolver {
+		return ls.blockIndex - 1
+	}
+	return ls.blockIndex + 1
+}
+
+func (ls *FastLineSolver) nextBlockPosition() int {
+	if ls.isLeftSolver {
+		return ls.positions[ls.blockIndex] + 1
+	}
+	return ls.positions[ls.blockIndex] - 1
+}
+
+func (ls *FastLineSolver) previousBlockPosition() int {
+	if ls.isLeftSolver {
+		return ls.positions[ls.blockIndex] - 1
+	}
+	return ls.positions[ls.blockIndex] + 1
+}
+
+func (ls *FastLineSolver) blockIsSmallerThanConstraint() bool {
+	if ls.isLeftSolver {
+		return ls.currentIndex-ls.positions[ls.blockIndex] < ls.constraints[ls.blockIndex]
+	}
+	return ls.positions[ls.blockIndex]-ls.currentIndex < ls.constraints[ls.blockIndex]
+}
+
+func (ls *FastLineSolver) currentIndexOutOfBounds() bool {
+	if ls.isLeftSolver {
+		return ls.currentIndex >= len(ls.line)
+	}
+	return ls.currentIndex < 0
+}
+
+func (ls *FastLineSolver) blockIndexInBounds() bool {
+	if ls.isLeftSolver {
+		return ls.blockIndex < len(ls.constraints)-1
+	}
+	return ls.blockIndex > 0
+}
+
+func (ls *FastLineSolver) moveBlockForward() {
+	if ls.isLeftSolver {
+		ls.currentIndex = ls.positions[ls.blockIndex] + ls.constraints[ls.blockIndex]
+	} else {
+		ls.currentIndex = ls.positions[ls.blockIndex] + ls.constraints[ls.blockIndex]
+	}
+}
+
+func (ls *FastLineSolver) blockIndexBeforeBounds() bool {
+	if ls.isLeftSolver {
+		return ls.blockIndex < 0
+	}
+	return ls.blockIndex > len(ls.constraints)-1
+}
+
+func (ls *FastLineSolver) isPositionOfBlockNotCovered() bool {
+	if ls.isLeftSolver {
+		return ls.positions[ls.blockIndex] < ls.coverage[ls.blockIndex]
+	}
+	return ls.positions[ls.blockIndex] > ls.coverage[ls.blockIndex]
 }
