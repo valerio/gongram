@@ -17,7 +17,7 @@ func (board Board) String() string {
 
 	for _, line := range board {
 		buffer.WriteString("|")
-
+		
 		for _, cell := range line {
 			switch cell {
 			case full:

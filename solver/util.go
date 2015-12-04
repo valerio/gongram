@@ -7,8 +7,8 @@ import (
 	"os"
 )
 
-// JsonObject is the base struct for decoding JSON files containing one or more nonogram puzzles
-type JsonObject struct {
+// JSONObject is the base struct for decoding JSON files containing one or more nonogram puzzles
+type JSONObject struct {
 	Puzzles []Puzzle
 }
 
@@ -20,14 +20,14 @@ type Puzzle struct {
 	Cols [][]int
 }
 
-// ReadJsonPuzzleFile reads a json file and tries to parse it, returning a JsonObject with the 
+// ReadJSONPuzzleFile reads a json file and tries to parse it, returning a JSONObject with the
 // file structure.
-func ReadJsonPuzzleFile(name string) (v JsonObject) {
+func ReadJSONPuzzleFile(name string) (v JSONObject) {
 	f, err := os.Open(name)
 	defer f.Close()
 
 	if err != nil {
-		panic(err)	
+		panic(err)
 	}
 
 	reader := bufio.NewReader(f)
@@ -38,7 +38,8 @@ func ReadJsonPuzzleFile(name string) (v JsonObject) {
 	return
 }
 
-func (obj JsonObject) ListNames() {
+// ListNames prints to stdout a list of all the puzzles found in a JSONObject
+func (obj JSONObject) ListNames() {
 	fmt.Println("Found the following puzzles: ")
 	for _, puzzle := range obj.Puzzles {
 		fmt.Printf("\t%d x %d - %s\n", len(puzzle.Rows), len(puzzle.Cols), puzzle.Name)

@@ -7,8 +7,8 @@ import (
 
 // TODO: the main should parse args and solve based on that
 
-func main() {	
-	inputFile := solver.ReadJsonPuzzleFile("puzzles/nonogram.json")
+func main() {
+	inputFile := solver.ReadJSONPuzzleFile("puzzles/nonogram.json")
 	puz := inputFile.Puzzles[0]
 	line := make([]solver.Cell, 10)
 	line[0], line[5] = 2, 2

@@ -31,6 +31,7 @@ func NewTreeSolver(p Puzzle) *TreeSolver {
 	return &t
 }
 
+// Solve implements the Solver interface, returning a fully solved Board
 func (t *TreeSolver) Solve() Board {
 	return NewBoard(0, 0) //TODO: not implemented yet
 }
@@ -108,7 +109,7 @@ func (t *TreeSolver) score(lt LineType, index int) int {
 	var constraints []int
 	var l int
 
-	if lt == row {
+	if lt == row { 
 		constraints = t.puzzle.Rows[index]
 		l = len(t.puzzle.Rows)
 	} else {

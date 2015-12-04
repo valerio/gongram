@@ -54,7 +54,7 @@ func TestRightSolve(t *testing.T) {
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
 		t.FailNow()
-	}
+	}		
 }
 
 func TestIntersect(t *testing.T) {
