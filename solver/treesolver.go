@@ -33,7 +33,8 @@ func NewTreeSolver(p Puzzle) *TreeSolver {
 
 // Solve implements the Solver interface, returning a fully solved Board
 func (t *TreeSolver) Solve() Board {
-	return NewBoard(0, 0) //TODO: not implemented yet
+	_, _ = t.logicSolve()
+	return t.board //TODO: not implemented yet
 }
 
 // LineType identifies a line (slice of Cell) as either a row or column

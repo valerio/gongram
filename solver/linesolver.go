@@ -12,7 +12,7 @@ type FastLineSolver struct {
 	state         flState
 	isLeftSolver  bool
 	currentIndex  int
-	blockIndex    int	
+	blockIndex    int
 	backtracking  bool
 	positions     []int
 	coverage      []int
@@ -147,8 +147,8 @@ func newRightLineSolver(constraints []int, line []Cell) FastLineSolver {
 }
 
 // The solve functions implements a basic finite state machine, it executes until the solver reaches the halt state.
-// If a contradiction has been found, no solution can be found and the solver stops. This means the puzzle currently 
-// contains an error. 
+// If a contradiction has been found, no solution can be found and the solver stops. This means the puzzle currently
+// contains an error.
 func (ls *FastLineSolver) solve() []int {
 	for ls.state != halt {
 		switch ls.state {
