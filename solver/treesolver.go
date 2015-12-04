@@ -1,4 +1,4 @@
-package gongram
+package solver
 
 import (
 	"reflect"
@@ -17,42 +17,9 @@ import (
 type TreeSolver struct {
 	puzzle     Puzzle
 	board      Board
-	jobs       TreeSolverJobs
+	jobs       treeSolverJobs
 	activeJobs int
 	GuessCount int
-}
-
-// LineType identifies a line (slice of Cell) as either a row or column
-type LineType int
-
-const (
-	row LineType = iota
-	column
-)
-
-// TreeSolverJob represents lines of the board (either rows or columns) that
-// have yet to be solved
-// the score can be used as a priority for job execution
-type TreeSolverJob struct {
-	ltype       LineType
-	index       int
-	line        []Cell
-	constraints []int
-	score       int
-}
-
-type TreeSolverJobs []TreeSolverJob
-
-func (slice TreeSolverJobs) Len() int {
-	return len(slice)
-}
-
-func (slice TreeSolverJobs) Less(i, j int) bool {
-	return slice[i].score < slice[j].score
-}
-
-func (slice TreeSolverJobs) Swap(i, j int) {
-	slice[i], slice[j] = slice[j], slice[i]
 }
 
 // NewTreeSolver returns a newly created Solver for the given puzzle
@@ -67,6 +34,41 @@ func NewTreeSolver(p Puzzle) *TreeSolver {
 func (t *TreeSolver) Solve() Board {
 	return NewBoard(0, 0) //TODO: not implemented yet
 }
+
+// LineType identifies a line (slice of Cell) as either a row or column
+type LineType int
+
+const (
+	row LineType = iota
+	column
+)
+
+// treeSolverJob represents lines of the board (either rows or columns) that
+// have yet to be solved.
+// The score is used as priority for job execution
+type treeSolverJob struct {
+	ltype       LineType
+	index       int
+	line        []Cell
+	constraints []int
+	score       int
+}
+
+type treeSolverJobs []treeSolverJob
+
+func (slice treeSolverJobs) Len() int {
+	return len(slice)
+}
+
+func (slice treeSolverJobs) Less(i, j int) bool {
+	return slice[i].score < slice[j].score
+}
+
+func (slice treeSolverJobs) Swap(i, j int) {
+	slice[i], slice[j] = slice[j], slice[i]
+}
+
+
 
 func (t *TreeSolver) getLine(lt LineType, index int) []Cell {
 	if lt == row {
@@ -128,18 +130,18 @@ func (t *TreeSolver) score(lt LineType, index int) int {
 }
 
 func (t *TreeSolver) initJobs() {
-	t.jobs = make([]TreeSolverJob, len(t.puzzle.Rows)+len(t.puzzle.Cols))
+	t.jobs = make([]treeSolverJob, len(t.puzzle.Rows)+len(t.puzzle.Cols))
 
 	for i := 0; i < len(t.puzzle.Rows); i++ {
-		t.jobs = append(t.jobs, TreeSolverJob{row, i, t.getLine(row, i), t.puzzle.Rows[i], t.score(row, i)})
+		t.jobs = append(t.jobs, treeSolverJob{row, i, t.getLine(row, i), t.puzzle.Rows[i], t.score(row, i)})
 	}
 
 	for i := 0; i < len(t.puzzle.Cols); i++ {
-		t.jobs = append(t.jobs, TreeSolverJob{column, i, t.getLine(column, i), t.puzzle.Cols[i], t.score(column, i)})
+		t.jobs = append(t.jobs, treeSolverJob{column, i, t.getLine(column, i), t.puzzle.Cols[i], t.score(column, i)})
 	}
 }
 
-func (t *TreeSolver) updateJobs(oldJob TreeSolverJob, newLine []Cell) {
+func (t *TreeSolver) updateJobs(oldJob treeSolverJob, newLine []Cell) {
 	count := 0
 	for i, v := range newLine {
 		if v != oldJob.line[i] {
@@ -165,13 +167,13 @@ func (t *TreeSolver) updateJobs(oldJob TreeSolverJob, newLine []Cell) {
 					constraints = t.puzzle.Rows[i]
 				}
 
-				t.jobs = append(t.jobs, TreeSolverJob{lt, i, t.getLine(lt, i), constraints, t.score(lt, i)})
+				t.jobs = append(t.jobs, treeSolverJob{lt, i, t.getLine(lt, i), constraints, t.score(lt, i)})
 			}
 		}
 	}
 }
 
-func (t *TreeSolver) LogicSolve() (emptyCells int, ok bool) {
+func (t *TreeSolver) logicSolve() (emptyCells int, ok bool) {
 	ok = true
 
 	if len(t.jobs) == 0 {
@@ -180,7 +182,7 @@ func (t *TreeSolver) LogicSolve() (emptyCells int, ok bool) {
 
 	for len(t.jobs) > 0 {
 		// pop the last job from the slice
-		var job TreeSolverJob
+		var job treeSolverJob
 		job, t.jobs = t.jobs[len(t.jobs)-1], t.jobs[:len(t.jobs)-1]
 
 		newLine, success := intersect(job.constraints, job.line)

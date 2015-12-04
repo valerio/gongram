@@ -1,4 +1,4 @@
-package gongram
+package solver
 
 // FastLineSolver operates by determining the starting index of each of the blocks indicated in the constraints.
 // if the constraints are [2,3], the solver will try to place a block of 2 and a block of 3 separated by at least one

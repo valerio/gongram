@@ -1,4 +1,4 @@
-package gongram
+package solver
 
 import (
 	"reflect"
