@@ -10,8 +10,8 @@ import (
 func main() {
 	inputFile := solver.ReadJSONPuzzleFile("puzzles/nonogram.json")
 	puz := inputFile.Puzzles[0]
-	
-	s := solver.NewTreeSolver(puz)	
+
+	s := solver.NewTreeSolver(puz)
 	board := s.Solve()
 	fmt.Println(board)
 }

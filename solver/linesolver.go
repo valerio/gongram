@@ -154,22 +154,16 @@ func (ls *FastLineSolver) solve() []int {
 		switch ls.state {
 		case newblock:
 			ls.newBlock()
-			continue
 		case placeblock:
 			ls.placeBlock()
-			continue
 		case finalspace:
 			ls.finalSpace()
-			continue
 		case checkrest:
 			ls.checkRest()
-			continue
 		case backtrack:
 			ls.backtrack()
-			continue
 		case advanceblock:
 			ls.advanceBlock()
-			continue
 		}
 	}
 

@@ -70,18 +70,15 @@ func (slice treeSolverJobs) Swap(i, j int) {
 	slice[i], slice[j] = slice[j], slice[i]
 }
 
-
-
 func (t *TreeSolver) getLine(lt LineType, index int) []Cell {
 	if lt == row {
 		return t.board[index]
-	} else {
-		result := make([]Cell, len(t.puzzle.Cols))
-		for i := 0; i < len(t.puzzle.Rows); i++ {
-			result = append(result, t.board[i][index])
-		}
-		return result
 	}
+	result := make([]Cell, len(t.puzzle.Cols))
+	for i := 0; i < len(t.puzzle.Rows); i++ {
+		result = append(result, t.board[i][index])
+	}
+	return result
 }
 
 func (t *TreeSolver) emptyCells() int {
@@ -110,7 +107,7 @@ func (t *TreeSolver) score(lt LineType, index int) int {
 	var constraints []int
 	var l int
 
-	if lt == row { 
+	if lt == row {
 		constraints = t.puzzle.Rows[index]
 		l = len(t.puzzle.Rows)
 	} else {
@@ -126,9 +123,8 @@ func (t *TreeSolver) score(lt LineType, index int) int {
 
 	if b == l {
 		return l
-	} else {
-		return b*(n+1) + n*(n-l-1)
 	}
+	return b*(n+1) + n*(n-l-1)
 }
 
 func (t *TreeSolver) initJobs() {
