@@ -9,8 +9,8 @@ import (
 
 func main() {
 	inputFile := solver.ReadJSONPuzzleFile("puzzles/nonogram.json")
-	puz := inputFile.Puzzles[0]
-
+	puz := inputFile.Puzzles[1]
+	fmt.Println("Loaded puzzle:", puz.Name)
 	s := solver.NewTreeSolver(puz)
 	board := s.Solve()
 	fmt.Println(board)

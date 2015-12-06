@@ -76,7 +76,7 @@ func (t *TreeSolver) getLine(lt LineType, index int) []Cell {
 	}
 	result := make([]Cell, len(t.puzzle.Cols))
 	for i := 0; i < len(t.puzzle.Rows); i++ {
-		result = append(result, t.board[i][index])
+		result[i] = t.board[i][index]
 	}
 	return result
 }
@@ -128,7 +128,7 @@ func (t *TreeSolver) score(lt LineType, index int) int {
 }
 
 func (t *TreeSolver) initJobs() {
-	t.jobs = make([]treeSolverJob, len(t.puzzle.Rows)+len(t.puzzle.Cols))
+	t.jobs = make([]treeSolverJob, 0)
 
 	for i := 0; i < len(t.puzzle.Rows); i++ {
 		t.jobs = append(t.jobs, treeSolverJob{row, i, t.getLine(row, i), t.puzzle.Rows[i], t.score(row, i)})

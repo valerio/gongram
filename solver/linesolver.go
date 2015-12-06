@@ -59,7 +59,6 @@ func SolveLine(constraints []int, line []Cell) (result []Cell, ok bool) {
 func intersect(constraints []int, line []Cell) (result []Cell, ok bool) {
 	result = make([]Cell, len(line))
 	ok = true
-
 	// if the line is completely empty or full the solution is trivial
 	if constraints[0] == 0 {
 		for i := range result {
