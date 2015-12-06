@@ -16,19 +16,21 @@ func (board Board) String() string {
 	var buffer bytes.Buffer
 
 	for _, line := range board {
-		buffer.WriteString("|")
-		
+		buffer.WriteString("\u23b9 ")
+
 		for _, cell := range line {
 			switch cell {
 			case full:
-				buffer.WriteString(" # ")
+				// unicode - \u2589
+				buffer.WriteString(" ▉ ")
 			case marked:
-				buffer.WriteString(" - ")
+				// unicode - \u00d7
+				buffer.WriteString(" × ")
 			case empty:
 				buffer.WriteString("   ")
 			}
 		}
-		buffer.WriteString("|\n")
+		buffer.WriteString(" \u23b8\n")
 	}
 	return buffer.String()
 }
