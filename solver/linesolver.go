@@ -75,8 +75,14 @@ func intersect(constraints []int, line []Cell) (result []Cell, ok bool) {
 	changed, rb, lb := 0, 0, 0
 	lgap, rgap := true, true
 
-	leftSolver := newLeftLineSolver(constraints, line)
-	rightSolver := newRightLineSolver(constraints, line)
+	leftLine := make([]Cell, len(line))
+	copy(leftLine, line)
+
+	rightLine := make([]Cell, len(line))
+	copy(rightLine, line)
+
+	leftSolver := newLeftLineSolver(constraints, leftLine)
+	rightSolver := newRightLineSolver(constraints, rightLine)
 
 	left := leftSolver.solve()
 	right := rightSolver.solve()

@@ -5,6 +5,39 @@ import (
 	"sort"
 )
 
+// LineType identifies a line (slice of Cell) as either a row or column
+type LineType int
+
+const (
+	row LineType = iota
+	column
+)
+
+// treeSolverJob represents lines of the board (either rows or columns) that
+// have yet to be solved.
+// The score is used as priority for job execution.
+type treeSolverJob struct {
+	ltype       LineType
+	index       int
+	line        []Cell
+	constraints []int
+	score       int
+}
+
+type treeSolverJobs []treeSolverJob
+
+func (slice treeSolverJobs) Len() int {
+	return len(slice)
+}
+
+func (slice treeSolverJobs) Less(i, j int) bool {
+	return slice[i].score < slice[j].score
+}
+
+func (slice treeSolverJobs) Swap(i, j int) {
+	slice[i], slice[j] = slice[j], slice[i]
+}
+
 // A TreeSolver solves a nonogram by trying to solve lines iteratively until the puzzle is completed
 //
 // it keeps track of lines that need to be solved yet in a slice of jobs, whenever one of the lines
@@ -35,39 +68,6 @@ func NewTreeSolver(p Puzzle) *TreeSolver {
 func (t *TreeSolver) Solve() Board {
 	_, _ = t.logicSolve()
 	return t.board //TODO: not implemented yet
-}
-
-// LineType identifies a line (slice of Cell) as either a row or column
-type LineType int
-
-const (
-	row LineType = iota
-	column
-)
-
-// treeSolverJob represents lines of the board (either rows or columns) that
-// have yet to be solved.
-// The score is used as priority for job execution
-type treeSolverJob struct {
-	ltype       LineType
-	index       int
-	line        []Cell
-	constraints []int
-	score       int
-}
-
-type treeSolverJobs []treeSolverJob
-
-func (slice treeSolverJobs) Len() int {
-	return len(slice)
-}
-
-func (slice treeSolverJobs) Less(i, j int) bool {
-	return slice[i].score < slice[j].score
-}
-
-func (slice treeSolverJobs) Swap(i, j int) {
-	slice[i], slice[j] = slice[j], slice[i]
 }
 
 func (t *TreeSolver) getLine(lt LineType, index int) []Cell {

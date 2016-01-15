@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"	
 	"flag"
+	"fmt"
+
 	"github.com/sosdoc/gongram/solver"
 )
 
@@ -11,26 +12,26 @@ var puzzleName = flag.String("p", "", "Name of the puzzle to solve. It has to be
 var listNames = flag.Bool("l", false, "Displays the names in the puzzle file without solving.")
 
 func main() {
-	flag.Parse()		
+	flag.Parse()
 	jsonObj, err := solver.ReadJSONPuzzleFile(*fileName)
-	
+
 	if err != nil {
 		fmt.Println(err)
-		return 
+		return
 	}
-	
+
 	if *listNames || *puzzleName == "" {
 		jsonObj.ListNames()
 		return
-	} 
-	
+	}
+
 	puzzle, err := jsonObj.GetByName(*puzzleName)
-	
+
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-			
+
 	fmt.Println("Loaded puzzle:", puzzle.Name)
 	s := solver.NewTreeSolver(puzzle)
 	board := s.Solve()

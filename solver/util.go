@@ -3,9 +3,9 @@ package solver
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
-	"errors"
 )
 
 // JSONObject is the base struct for decoding JSON files containing one or more nonogram puzzles
@@ -28,9 +28,8 @@ func ReadJSONPuzzleFile(name string) (puzzles JSONObject, err error) {
 	defer f.Close()
 
 	if err != nil {
-		return 
+		return
 	}
-
 	reader := bufio.NewReader(f)
 	dec := json.NewDecoder(reader)
 	// decodes the file in the puzzles struct
@@ -54,8 +53,8 @@ func (obj JSONObject) GetByName(name string) (p Puzzle, err error) {
 		if puzzle.Name == name {
 			p = puzzle
 			return
-		}	
+		}
 	}
 	err = errors.New("No puzzle found with the given name")
-	return  
+	return
 }
