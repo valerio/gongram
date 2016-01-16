@@ -220,10 +220,10 @@ func (ls *FastLineSolver) placeBlock() {
 	} else {
 		ls.coverage[ls.blockIndex] = ls.currentIndex //we need to cover position i (cannot move ls.blockIndex past i)
 	}
+
 	ls.currentIndex = ls.nextIndex()
 
 	for ls.blockIsSmallerThanConstraint() {
-
 		if ls.currentIndexOutOfBounds() {
 			ls.state = halt
 			ls.contradiction = true
@@ -324,6 +324,7 @@ func (ls *FastLineSolver) advanceBlock() {
 
 		if ls.line[ls.currentIndex] == full {
 			ls.currentIndex = ls.nextIndex()
+
 			if ls.coverage[ls.blockIndex] == -1 {
 				ls.coverage[ls.blockIndex] = ls.currentIndex - 1
 			}
@@ -447,7 +448,7 @@ func (ls *FastLineSolver) moveBlockForward() {
 	if ls.isLeftSolver {
 		ls.currentIndex = ls.positions[ls.blockIndex] + ls.constraints[ls.blockIndex]
 	} else {
-		ls.currentIndex = ls.positions[ls.blockIndex] + ls.constraints[ls.blockIndex]
+		ls.currentIndex = ls.positions[ls.blockIndex] - ls.constraints[ls.blockIndex]
 	}
 }
 

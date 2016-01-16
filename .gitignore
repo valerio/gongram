@@ -25,3 +25,6 @@ _testmain.go
 
 # excludes the executable by name
 gongram
+
+# visual studio code folder
+.vscode
